@@ -3,6 +3,7 @@ import { getCurrentDeveloper } from "@/lib/auth";
 import { getTenantEndUsers } from "@/lib/usageStats";
 import { Shell, shellStyles } from "@/components/Shell";
 import { Card, StatusPill, EmptyState, uiStyles } from "@/components/ui";
+import { EndUserActions } from "@/components/EndUserActions";
 
 export const dynamic = "force-dynamic";
 
@@ -38,16 +39,19 @@ export default async function EndUsersPage() {
                 <th>Key</th>
                 <th>Status</th>
                 <th style={{ textAlign: "right" }}>Spent</th>
+                <th style={{ textAlign: "right" }}></th>
               </tr>
             </thead>
             <tbody>
               {users.map((u, i) => (
-                <tr key={i}>
+                <tr key={i} style={u.isActive ? undefined : { opacity: 0.55 }}>
                   <td className={uiStyles.cellMono}>{u.endUserLabel}</td>
                   <td>{u.provider}</td>
                   <td className={uiStyles.cellMono}>{u.keyMasked}</td>
                   <td>
-                    {u.validationState === "valid" ? (
+                    {!u.isActive ? (
+                      <StatusPill kind="danger">revoked</StatusPill>
+                    ) : u.validationState === "valid" ? (
                       <StatusPill kind="success">valid</StatusPill>
                     ) : u.validationState === "invalid" ? (
                       <StatusPill kind="danger">invalid</StatusPill>
@@ -57,6 +61,10 @@ export default async function EndUsersPage() {
                   </td>
                   <td className={uiStyles.cellMono} style={{ textAlign: "right" }}>
                     ${u.spentUsd.toFixed(u.spentUsd < 1 ? 4 : 2)}
+                    {u.spendCapUsd != null ? ` / $${u.spendCapUsd}` : ""}
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <EndUserActions endUserLabel={u.endUserLabel} provider={u.provider} isActive={u.isActive} />
                   </td>
                 </tr>
               ))}
