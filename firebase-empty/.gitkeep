@@ -1,0 +1,1 @@
+# Firebase Hosting 루트(의도적으로 빈 디렉터리). 모든 요청을 Cloud Run으로 rewrite — 정적 파일도 Cloud Run의 Next public/이 서빙.
