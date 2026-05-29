@@ -40,7 +40,9 @@ const client = new OpenAI({
         <Card title="2. Issue a registration token (your backend)">
           <p className={uiStyles.cardDesc} style={{ marginTop: 0, marginBottom: 12 }}>
             When a user wants to connect their key, ask Relay for a short-lived,
-            single-use token scoped to that user.
+            single-use token scoped to that user. Omit <code>provider</code> to let
+            the user pick (OpenAI / Anthropic / Google) in the widget, or set it to
+            lock the widget to one provider.
           </p>
           <CodeBlock>{`const res = await fetch("https://vault.relayservice.im/api/v1/registration-tokens", {
   method: "POST",
@@ -48,7 +50,8 @@ const client = new OpenAI({
     "Authorization": "Bearer ${rly}",
     "Content-Type": "application/json",
   },
-  body: JSON.stringify({ endUserLabel: "jieun_123", provider: "openai" }),
+  // omit "provider" → user chooses in the widget; or set "provider": "openai" to lock it
+  body: JSON.stringify({ endUserLabel: "jieun_123" }),
 });
 const { registrationToken } = await res.json();`}</CodeBlock>
         </Card>
@@ -63,9 +66,22 @@ const { registrationToken } = await res.json();`}</CodeBlock>
 <script>
   RelayPay.mount('#relay-pay', {
     registrationToken: registrationToken, // from step 2
-    provider: 'openai',
+    // provider: 'openai',   // optional — omit to show the provider picker
+    // theming & i18n (all optional):
+    theme: 'light',          // 'light' | 'dark'
+    accentColor: '#635bff',  // your brand color
+    radius: 12,              // corner radius (px)
+    locale: 'en',            // 'en' | 'ko'
+    onSuccess: (r) => console.log('connected', r.provider, r.masked),
+    onError:   (e) => console.warn(e),
   });
 </script>`}</CodeBlock>
+          <p className={uiStyles.cardDesc} style={{ marginTop: 12, marginBottom: 0, fontSize: 13 }}>
+            The widget renders in a Shadow DOM, so your site&apos;s CSS can&apos;t
+            break it and vice versa. It&apos;s responsive (desktop &amp; mobile web).
+            On native apps, show it in a WebView pointing at a page that mounts the
+            widget.
+          </p>
         </Card>
 
         <Card title="4. Make calls on behalf of a user">

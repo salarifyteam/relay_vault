@@ -35,16 +35,17 @@ export async function POST(req: NextRequest) {
   }
 
   const endUserLabel = body.endUserLabel?.trim();
-  const provider = body.provider as ByokProvider;
+  // provider는 선택. 생략하면 위젯에서 최종 사용자가 직접 고른다.
+  const provider = body.provider ? (body.provider as ByokProvider) : undefined;
   if (!endUserLabel) {
     return NextResponse.json(
       { error: { message: "Missing endUserLabel" } },
       { status: 400 }
     );
   }
-  if (!provider || !VALID_PROVIDERS.includes(provider)) {
+  if (provider && !VALID_PROVIDERS.includes(provider)) {
     return NextResponse.json(
-      { error: { message: "Missing or invalid provider" } },
+      { error: { message: "Invalid provider" } },
       { status: 400 }
     );
   }

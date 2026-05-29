@@ -5,6 +5,10 @@ import EndUserKey from "@/lib/models/EndUserKey";
 import RegistrationToken from "@/lib/models/RegistrationToken";
 import { getCrypto } from "@/lib/crypto";
 import { maskByokKey, validateByokKey } from "@/lib/services/byokProvider";
+import type { ByokProvider } from "@/lib/services/byokProvider";
+
+// 위젯에서 사용자가 직접 고를 수 있는 프로바이더(이번엔 3사)
+const SELECTABLE_PROVIDERS: ByokProvider[] = ["openai", "anthropic", "google"];
 
 function corsHeaders(req: NextRequest): Record<string, string> {
   const origin = req.headers.get("origin") || "*";
@@ -25,7 +29,7 @@ export async function POST(req: NextRequest) {
   const json = (data: unknown, status: number) =>
     NextResponse.json(data, { status, headers: cors });
 
-  let body: { registrationToken?: string; apiKey?: string };
+  let body: { registrationToken?: string; apiKey?: string; provider?: string };
   try {
     body = await req.json();
   } catch {
@@ -59,8 +63,18 @@ export async function POST(req: NextRequest) {
     return json({ ok: false, error: "Tenant unavailable" }, 400);
   }
 
+  // 프로바이더 확정: 토큰에 고정돼 있으면 그것이 우선(제공자가 잠금 가능),
+  // 없으면 위젯에서 사용자가 고른 것(요청 body)을 쓴다.
+  const provider = (tokenDoc.provider ?? body.provider) as ByokProvider | undefined;
+  if (!provider) {
+    return json({ ok: false, error: "Missing provider" }, 400);
+  }
+  if (!tokenDoc.provider && !SELECTABLE_PROVIDERS.includes(provider)) {
+    return json({ ok: false, error: "Unsupported provider" }, 400);
+  }
+
   // 라이브 검증: 키가 진짜 살아있는지 프로바이더에 확인 (가짜/오타 키는 저장 안 함)
-  const validation = await validateByokKey(tokenDoc.provider, apiKey);
+  const validation = await validateByokKey(provider, apiKey);
   if (!validation.ok) {
     return json({ ok: false, error: validation.error || "Invalid API key" }, 400);
   }
@@ -73,12 +87,12 @@ export async function POST(req: NextRequest) {
     {
       tenantId: tenant._id,
       endUserLabel: tokenDoc.endUserLabel,
-      provider: tokenDoc.provider,
+      provider,
     },
     {
       tenantId: tenant._id,
       endUserLabel: tokenDoc.endUserLabel,
-      provider: tokenDoc.provider,
+      provider,
       keyEncrypted: sealed.ciphertext,
       keyMasked: maskByokKey(apiKey),
       cryptoVersion: sealed.cryptoVersion,
@@ -100,7 +114,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       masked: maskByokKey(apiKey),
       endUserLabel: tokenDoc.endUserLabel,
-      provider: tokenDoc.provider,
+      provider,
       availableModels: validation.models,
     },
     200

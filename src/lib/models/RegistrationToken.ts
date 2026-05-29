@@ -5,7 +5,8 @@ export interface IRegistrationToken extends Document {
   token: string;
   tenantId: mongoose.Types.ObjectId;
   endUserLabel: string;
-  provider: ByokProvider;
+  // 미지정이면 위젯에서 최종 사용자가 프로바이더를 직접 선택한다.
+  provider?: ByokProvider;
   expiresAt: Date;
   usedAt?: Date;
   createdAt: Date;
@@ -25,7 +26,7 @@ const RegistrationTokenSchema = new Schema<IRegistrationToken>(
     provider: {
       type: String,
       enum: ["openai", "google", "anthropic", "xai", "zai"],
-      required: true,
+      required: false,
     },
     expiresAt: { type: Date, required: true },
     usedAt: { type: Date, required: false },

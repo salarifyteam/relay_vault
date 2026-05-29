@@ -20,18 +20,32 @@
       <b>테스트 방법:</b> 백엔드가 발급한 등록 토큰(<code>rgt-...</code>)을 아래에
       붙여넣고 "위젯 띄우기"를 누르세요. (URL에
       <code>?token=rgt-...</code>를 붙이면 자동으로 뜹니다.)
-      <div style="margin-top: 8px; display: flex; gap: 8px">
+      <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap">
         <input
           id="tok"
           placeholder="rgt-..."
-          style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace"
+          style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace"
         />
         <button
           id="go"
-          style="padding: 8px 12px; border: 0; background: #111827; color: #fff; border-radius: 6px; cursor: pointer"
+          style="padding: 8px 12px; border: 0; background: #635bff; color: #fff; border-radius: 6px; cursor: pointer"
         >
           위젯 띄우기
         </button>
+      </div>
+      <div style="margin-top: 10px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center">
+        <label>테마
+          <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+        </label>
+        <label>언어
+          <select id="locale"><option value="en">en</option><option value="ko">ko</option></select>
+        </label>
+        <label>강조색
+          <input id="accent" type="color" value="#635bff" style="vertical-align: middle" />
+        </label>
+        <label>라운드
+          <input id="radius" type="range" min="0" max="24" value="12" style="vertical-align: middle" />
+        </label>
       </div>
     </div>
 
@@ -45,13 +59,23 @@
       function show(token) {
         RelayPay.mount("#relay-pay", {
           registrationToken: token,
-          provider: getParam("provider") || "openai",
+          provider: getParam("provider") || undefined, // 미지정이면 위젯에서 선택
+          theme: document.getElementById("theme").value,
+          locale: document.getElementById("locale").value,
+          accentColor: document.getElementById("accent").value,
+          radius: Number(document.getElementById("radius").value),
+          onSuccess: function (r) { console.log("[demo] onSuccess", r); },
+          onError: function (e) { console.log("[demo] onError", e); },
         });
       }
-      document.getElementById("go").onclick = function () {
+      function rerender() {
         var t = document.getElementById("tok").value.trim();
         if (t) show(t);
-      };
+      }
+      document.getElementById("go").onclick = rerender;
+      ["theme", "locale", "accent", "radius"].forEach(function (id) {
+        document.getElementById(id).addEventListener("change", rerender);
+      });
       var urlToken = getParam("token");
       if (urlToken) {
         document.getElementById("tok").value = urlToken;
