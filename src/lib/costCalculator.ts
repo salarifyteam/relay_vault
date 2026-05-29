@@ -16,6 +16,11 @@ const PRICING: Record<string, { input: number; output: number }> = {
   "gemini-2.0-flash": { input: 0.1, output: 0.4 },
   "gemini-2.5-flash": { input: 0.3, output: 2.5 },
   "gemini-2.5-pro": { input: 1.25, output: 10 },
+  // Embeddings (입력 토큰만, output 0)
+  "text-embedding-3-small": { input: 0.02, output: 0 },
+  "text-embedding-3-large": { input: 0.13, output: 0 },
+  "text-embedding-004": { input: 0, output: 0 }, // Gemini 임베딩(현재 무료)
+  "gemini-embedding": { input: 0, output: 0 },
 };
 
 // 가장 구체적인(긴) 모델명 prefix 우선 매칭
