@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>노트메이트 (Relay Pay 위젯 테스트)</title>
+  </head>
+  <body
+    style="font-family: system-ui; max-width: 560px; margin: 40px auto; padding: 0 16px"
+  >
+    <h1>노트메이트 — 설정</h1>
+    <p style="color: #6b7280">
+      이 페이지는 <b>제공자(노트메이트) 앱</b>을 흉내냅니다. 아래 카드가 Relay
+      Pay 위젯이에요.
+    </p>
+
+    <div
+      style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin: 16px 0; font-size: 13px"
+    >
+      <b>테스트 방법:</b> 백엔드가 발급한 등록 토큰(<code>rgt-...</code>)을 아래에
+      붙여넣고 "위젯 띄우기"를 누르세요. (URL에
+      <code>?token=rgt-...</code>를 붙이면 자동으로 뜹니다.)
+      <div style="margin-top: 8px; display: flex; gap: 8px">
+        <input
+          id="tok"
+          placeholder="rgt-..."
+          style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace"
+        />
+        <button
+          id="go"
+          style="padding: 8px 12px; border: 0; background: #111827; color: #fff; border-radius: 6px; cursor: pointer"
+        >
+          위젯 띄우기
+        </button>
+      </div>
+    </div>
+
+    <div id="relay-pay"></div>
+
+    <script src="/widget.js"></script>
+    <script>
+      function getParam(n) {
+        return new URLSearchParams(location.search).get(n);
+      }
+      function show(token) {
+        RelayPay.mount("#relay-pay", {
+          registrationToken: token,
+          provider: getParam("provider") || "openai",
+        });
+      }
+      document.getElementById("go").onclick = function () {
+        var t = document.getElementById("tok").value.trim();
+        if (t) show(t);
+      };
+      var urlToken = getParam("token");
+      if (urlToken) {
+        document.getElementById("tok").value = urlToken;
+        show(urlToken);
+      }
+    </script>
+  </body>
+</html>
