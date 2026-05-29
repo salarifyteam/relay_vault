@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentDeveloper } from "@/lib/auth";
-import { getTenantUsage, relativeTime } from "@/lib/usageStats";
+import { getTenantUsage, getActiveKeyStats, relativeTime } from "@/lib/usageStats";
 import { maskByokKey } from "@/lib/services/byokProvider";
 import { Shell, shellStyles } from "@/components/Shell";
 import { ApiKeyCard } from "@/components/ApiKeyCard";
@@ -20,7 +20,11 @@ export default async function ConsoleHome() {
   if (!me) redirect("/login");
 
   const rlyKey = me.tenant.rlyKey;
-  const usage = await getTenantUsage(String(me.tenant._id));
+  const tenantId = String(me.tenant._id);
+  const [usage, keys] = await Promise.all([
+    getTenantUsage(tenantId),
+    getActiveKeyStats(tenantId),
+  ]);
 
   return (
     <Shell
@@ -42,6 +46,7 @@ export default async function ConsoleHome() {
             Usage this month
           </div>
           <StatCardGrid>
+            <StatCard label="Active keys" value={keys.paidActiveKeys.toLocaleString()} sub="billed this month" />
             <StatCard label="Requests" value={usage.requests.toLocaleString()} />
             <StatCard
               label="Est. cost"
@@ -90,7 +95,7 @@ export default async function ConsoleHome() {
           desc="Drop this into your app so users connect their own key — it goes straight to Relay."
         >
           <CodeBlock>{`<div id="relay-pay"></div>
-<script src="https://relaypay.im/widget.js"></script>
+<script src="https://vault.relayservice.im/widget.js"></script>
 <script>
   RelayPay.mount('#relay-pay', {
     registrationToken: 'rgt_…',   // from your backend

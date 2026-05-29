@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentDeveloper } from "@/lib/auth";
+import { PLANS } from "@/lib/billing/plans";
 import { Shell, shellStyles } from "@/components/Shell";
 import { OriginsEditor } from "@/components/OriginsEditor";
 import { Card } from "@/components/ui";
@@ -27,6 +28,11 @@ export default async function SettingsPage() {
             <span>{me.tenant.name}</span>
             <span style={{ color: "var(--ink-3)" }}>Owner</span>
             <span>{me.account.email}</span>
+            <span style={{ color: "var(--ink-3)" }}>Plan</span>
+            <span>
+              {PLANS[me.tenant.plan].label}
+              <span style={{ color: "var(--ink-3)", marginLeft: 8 }}>· contact us to change</span>
+            </span>
           </div>
         </Card>
 

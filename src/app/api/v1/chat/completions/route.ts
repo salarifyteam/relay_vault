@@ -14,6 +14,8 @@ import {
 import type { ByokProvider } from "@/lib/services/byokProvider";
 import { normalizeUsage, estimateCostUsd } from "@/lib/costCalculator";
 import { checkRequest } from "@/lib/governance/checkRequest";
+import { getActiveKeyStats, isKeyActiveThisMonth } from "@/lib/usageStats";
+import { PLANS } from "@/lib/billing/plans";
 import { anthropicAdapter } from "@/lib/providers/anthropic";
 import { googleAdapter } from "@/lib/providers/google";
 import {
@@ -38,6 +40,7 @@ async function recordUsage(params: {
   endUserLabel: string;
   provider: ByokProvider;
   model: string;
+  isPaid: boolean;
   usage: unknown;
   stream: boolean;
   requestId?: string;
@@ -56,9 +59,10 @@ async function recordUsage(params: {
     stream: params.stream,
     requestId: params.requestId,
   });
+  // 성공 요청 기록(위 UsageRecord) = 이번 달 활성 표시. isPaid는 요청마다 최신값으로 갱신(sticky).
   await EndUserKey.updateOne(
     { _id: params.endUserKeyId },
-    { $inc: { spentUsd: cost } }
+    { $inc: { spentUsd: cost }, $set: { isPaid: params.isPaid } }
   );
 }
 
@@ -123,6 +127,8 @@ export async function POST(req: NextRequest) {
   if (!endUserLabel) {
     return oaiError("Missing X-Relay-User header", 400);
   }
+  // 과금 분류: 무료앱이 무료 사용자 키를 표시하려면 X-Relay-Paid:false. 없으면 유료로 간주.
+  const isPaid = req.headers.get("x-relay-paid")?.trim().toLowerCase() !== "false";
 
   // 3) 요청 본문
   let body: OAIRequest;
@@ -169,6 +175,24 @@ export async function POST(req: NextRequest) {
     return oaiError(gate.reason || "Request blocked by policy", gate.status || 403);
   }
 
+  // 4.6) Free 플랜 활성키 하드캡: 신규 키만 차단(이미 이번 달 활성인 키는 통과).
+  // 유료 플랜(hardCapKeys=null)은 이 조회 자체를 건너뜀(비용 0).
+  const hardCap = PLANS[tenant.plan].hardCapKeys;
+  if (hardCap != null) {
+    const tid = tenant._id as mongoose.Types.ObjectId;
+    const alreadyActive = await isKeyActiveThisMonth(tid, endUserLabel, provider);
+    if (!alreadyActive) {
+      const { allActiveKeys } = await getActiveKeyStats(String(tid));
+      if (allActiveKeys >= hardCap) {
+        return oaiError(
+          `Active-key limit reached for the ${PLANS[tenant.plan].label} plan (${hardCap}). Upgrade to add more end-user keys.`,
+          429,
+          "rate_limit_error"
+        );
+      }
+    }
+  }
+
   // 5) 복호화 (프록시 시점에만)
   let apiKey: string;
   try {
@@ -190,6 +214,7 @@ export async function POST(req: NextRequest) {
     endUserLabel,
     provider,
     model,
+    isPaid,
   };
 
   // 6) OpenAI 호환 계열(openai/xai/zai): 형식 변환 없이 passthrough

@@ -32,7 +32,7 @@ export default async function DocsPage() {
           <CodeBlock>{`import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "https://api.relaypay.im/v1",
+  baseURL: "https://vault.relayservice.im/v1",
   apiKey: "${rly}",            // your Relay key
 });`}</CodeBlock>
         </Card>
@@ -42,7 +42,7 @@ const client = new OpenAI({
             When a user wants to connect their key, ask Relay for a short-lived,
             single-use token scoped to that user.
           </p>
-          <CodeBlock>{`const res = await fetch("https://api.relaypay.im/api/v1/registration-tokens", {
+          <CodeBlock>{`const res = await fetch("https://vault.relayservice.im/api/v1/registration-tokens", {
   method: "POST",
   headers: {
     "Authorization": "Bearer ${rly}",
@@ -59,7 +59,7 @@ const { registrationToken } = await res.json();`}</CodeBlock>
             your server never sees it.
           </p>
           <CodeBlock>{`<div id="relay-pay"></div>
-<script src="https://relaypay.im/widget.js"></script>
+<script src="https://vault.relayservice.im/widget.js"></script>
 <script>
   RelayPay.mount('#relay-pay', {
     registrationToken: registrationToken, // from step 2

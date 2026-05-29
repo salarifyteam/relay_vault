@@ -1,15 +1,26 @@
 import { redirect } from "next/navigation";
 import { getCurrentDeveloper } from "@/lib/auth";
-import { getTenantUsage, relativeTime } from "@/lib/usageStats";
+import { getTenantUsage, getActiveKeyStats, relativeTime } from "@/lib/usageStats";
+import { PLANS } from "@/lib/billing/plans";
+import { estimateBill, suggestUpgrade } from "@/lib/billing/estimate";
 import { Shell, shellStyles } from "@/components/Shell";
 import { Card, StatCard, StatCardGrid, EmptyState, uiStyles } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
+const usd = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export default async function UsagePage() {
   const me = await getCurrentDeveloper();
   if (!me) redirect("/login");
-  const usage = await getTenantUsage(String(me.tenant._id), 40);
+  const tenantId = String(me.tenant._id);
+  const [usage, keys] = await Promise.all([
+    getTenantUsage(tenantId, 40),
+    getActiveKeyStats(tenantId),
+  ]);
+  const plan = PLANS[me.tenant.plan];
+  const bill = estimateBill(me.tenant.plan, keys.paidActiveKeys);
+  const upgrade = suggestUpgrade(me.tenant.plan, keys.paidActiveKeys);
 
   return (
     <Shell
@@ -23,14 +34,50 @@ export default async function UsagePage() {
 
       <div className={shellStyles.stack}>
         <StatCardGrid>
-          <StatCard label="Requests" value={usage.requests.toLocaleString()} />
           <StatCard
-            label="Est. cost"
-            value={`$${usage.costUsd.toFixed(usage.costUsd < 1 ? 4 : 2)}`}
-            sub="across all providers"
+            label="Active keys"
+            value={keys.paidActiveKeys.toLocaleString()}
+            sub={keys.allActiveKeys !== keys.paidActiveKeys ? `${keys.allActiveKeys.toLocaleString()} total · billed on paid` : "billed this month"}
           />
-          <StatCard label="End-users" value={String(usage.endUsers)} sub="with a connected key" />
+          <StatCard label="Plan" value={plan.label} sub={bill.custom ? "custom contract" : `${plan.includedKeys.toLocaleString()} keys included`} />
+          <StatCard
+            label="Est. bill this month"
+            value={bill.custom ? "Custom" : usd(bill.totalUsd)}
+            sub={bill.custom ? "contact us" : bill.overageKeys > 0 ? `incl. ${bill.overageKeys.toLocaleString()} over` : "within included"}
+          />
+          <StatCard label="Requests" value={usage.requests.toLocaleString()} sub="proxied this month" />
         </StatCardGrid>
+
+        <Card title="Billing" desc="Relay bills your team by active keys — distinct end-user keys with at least one request this month. AI usage itself is billed by the provider on each end-user's own key.">
+          {bill.custom ? (
+            <p style={{ fontSize: 14, color: "var(--ink-2)", margin: 0 }}>
+              Enterprise plan — billing is handled by contract. {keys.paidActiveKeys.toLocaleString()} active keys this month.
+            </p>
+          ) : (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", rowGap: 8, fontSize: 14, maxWidth: 460 }}>
+                <span style={{ color: "var(--ink-3)" }}>Base ({plan.label})</span>
+                <span className={uiStyles.cellMono}>{usd(bill.baseUsd)}</span>
+                <span style={{ color: "var(--ink-3)" }}>
+                  Overage · {bill.overageKeys.toLocaleString()} keys × {usd(plan.overagePerKeyUsd)}
+                </span>
+                <span className={uiStyles.cellMono}>{usd(bill.overageUsd)}</span>
+                <span style={{ borderTop: "1px solid var(--line)", paddingTop: 8, fontWeight: 600 }}>Estimated total</span>
+                <span className={uiStyles.cellMono} style={{ borderTop: "1px solid var(--line)", paddingTop: 8, fontWeight: 600 }}>{usd(bill.totalUsd)}</span>
+              </div>
+              {plan.hardCapKeys != null && (
+                <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 14, marginBottom: 0 }}>
+                  Free plan includes up to {plan.hardCapKeys.toLocaleString()} active keys. New keys are blocked once you reach the cap — upgrade to add more.
+                </p>
+              )}
+              {upgrade && (
+                <p style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 14, marginBottom: 0 }}>
+                  At {keys.paidActiveKeys.toLocaleString()} active keys, the <strong>{PLANS[upgrade].label}</strong> plan ({usd(estimateBill(upgrade, keys.paidActiveKeys).totalUsd)}/mo) is cheaper than your current plan.
+                </p>
+              )}
+            </>
+          )}
+        </Card>
 
         <Card title="Requests">
           {usage.recent.length === 0 ? (

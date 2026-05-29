@@ -17,6 +17,7 @@ export interface IEndUserKey extends Document {
   spentUsd: number;
   ownerUserId?: mongoose.Types.ObjectId;
   isActive: boolean;
+  isPaid: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,8 @@ const EndUserKeySchema = new Schema<IEndUserKey>(
     spentUsd: { type: Number, default: 0 },
     ownerUserId: { type: Schema.Types.ObjectId, required: false },
     isActive: { type: Boolean, default: true },
+    // 과금 분류: 유료 엔드유저 키인지. 무료앱+BYOK는 X-Relay-Paid:false로 false 처리(브리프 §5).
+    isPaid: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
