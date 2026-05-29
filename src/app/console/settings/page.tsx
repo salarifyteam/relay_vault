@@ -3,6 +3,7 @@ import { getCurrentDeveloper } from "@/lib/auth";
 import { PLANS } from "@/lib/billing/plans";
 import { Shell, shellStyles } from "@/components/Shell";
 import { OriginsEditor } from "@/components/OriginsEditor";
+import { SpendCapEditor } from "@/components/SpendCapEditor";
 import { Card } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,8 @@ export default async function SettingsPage() {
             </span>
           </div>
         </Card>
+
+        <SpendCapEditor initial={me.tenant.defaultUserSpendCapUsd} />
 
         <OriginsEditor initial={me.tenant.allowedOrigins} />
       </div>

@@ -138,6 +138,8 @@ export interface EndUserRow {
   keyMasked: string;
   validationState: string;
   spentUsd: number;
+  spendCapUsd?: number;
+  isActive: boolean;
   lastValidatedAt?: Date;
 }
 
@@ -155,6 +157,8 @@ export async function getTenantEndUsers(tenantId: string): Promise<EndUserRow[]>
     keyMasked: d.keyMasked,
     validationState: d.validationState,
     spentUsd: d.spentUsd || 0,
+    spendCapUsd: d.spendCapUsd,
+    isActive: d.isActive,
     lastValidatedAt: d.lastValidatedAt,
   }));
 }
