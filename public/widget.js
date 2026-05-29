@@ -124,7 +124,7 @@
     opts = opts || {};
     var container = typeof selector === "string" ? document.querySelector(selector) : selector;
     if (!container) {
-      console.error("[RelayPay] container not found:", selector);
+      console.error("[Relay] container not found:", selector);
       return;
     }
     var apiBase = opts.apiBase || DEFAULT_BASE;
@@ -252,5 +252,5 @@
     else renderPicker();
   }
 
-  window.RelayPay = { mount: mount };
+  window.Relay = { mount: mount };
 })();

@@ -61,10 +61,10 @@ const { registrationToken } = await res.json();`}</CodeBlock>
             The user pastes their key here. It goes straight to Relay over TLS —
             your server never sees it.
           </p>
-          <CodeBlock>{`<div id="relay-pay"></div>
+          <CodeBlock>{`<div id="relay-widget"></div>
 <script src="https://vault.relayservice.im/widget.js"></script>
 <script>
-  RelayPay.mount('#relay-pay', {
+  Relay.mount('#relay-widget', {
     registrationToken: registrationToken, // from step 2
     // provider: 'openai',   // optional — omit to show the provider picker
     // theming & i18n (all optional):
