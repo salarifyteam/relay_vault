@@ -32,7 +32,7 @@ export default function LoginPage() {
         <div className={s.quoteCard}>
           <div className={s.quoteLabel}>One endpoint, every provider</div>
           <div className={s.kv}>
-            base_url = <b>api.relaypay.im</b>
+            base_url = <b>vault.relayservice.im</b>
             <br />
             model = <b>&quot;gpt-4o-mini&quot;</b>
             <br />

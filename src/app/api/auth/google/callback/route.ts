@@ -5,10 +5,25 @@ import {
   ensureTenant,
   createSession,
   setSessionCookie,
+  SESSION_COOKIE_NAME,
 } from "@/lib/auth";
 
+// 프록시(Firebase Hosting→Cloud Run) 뒤에서는 req.url 호스트가 내부 주소(0.0.0.0)일 수 있어
+// 공개 base URL을 명시 env / OAUTH_REDIRECT_URI origin 에서 가져온다.
+function appBase(req: NextRequest): string {
+  if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL;
+  if (process.env.OAUTH_REDIRECT_URI) {
+    try {
+      return new URL(process.env.OAUTH_REDIRECT_URI).origin;
+    } catch {
+      /* fall through */
+    }
+  }
+  return new URL(req.url).origin;
+}
+
 function loginError(req: NextRequest, reason: string) {
-  const url = new URL("/login", req.url);
+  const url = new URL("/login", appBase(req));
   url.searchParams.set("error", reason);
   return NextResponse.redirect(url);
 }
@@ -17,7 +32,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
-  const cookieState = req.cookies.get("oauth_state")?.value;
+  // state는 __session 쿠키로 전달됨(Firebase Hosting이 __session만 포워딩)
+  const cookieState = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
   if (!code) return loginError(req, "no_code");
   if (!state || !cookieState || state !== cookieState) {
@@ -53,8 +69,7 @@ export async function GET(req: NextRequest) {
 
   const { sessionId, expiresAt } = await createSession(accountId);
 
-  const res = NextResponse.redirect(new URL("/console", req.url));
-  setSessionCookie(res, sessionId, expiresAt);
-  res.cookies.delete("oauth_state");
+  const res = NextResponse.redirect(new URL("/console", appBase(req)));
+  setSessionCookie(res, sessionId, expiresAt); // __session을 실제 세션ID로 덮어씀
   return res;
 }

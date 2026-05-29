@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import UsageRecord from "@/lib/models/UsageRecord";
 import EndUserKey from "@/lib/models/EndUserKey";
+import type { ByokProvider } from "@/lib/services/byokProvider";
+
+// 청구월 시작(이번 달 1일 00:00, 서버 로컬). 활성키·사용량 집계가 공유.
+export function currentMonthStart(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
 
 export interface RecentRequest {
   model: string;
@@ -23,8 +30,7 @@ export interface TenantUsage {
 export async function getTenantUsage(tenantId: string, recentLimit = 8): Promise<TenantUsage> {
   await dbConnect();
   const tid = new mongoose.Types.ObjectId(tenantId);
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthStart = currentMonthStart();
 
   const [agg, endUsers, recentDocs] = await Promise.all([
     UsageRecord.aggregate<{ requests: number; costUsd: number }>([
@@ -58,6 +64,72 @@ export async function getTenantUsage(tenantId: string, recentLimit = 8): Promise
       createdAt: d.createdAt,
     })),
   };
+}
+
+export interface ActiveKeyStats {
+  allActiveKeys: number; // 이번 달 성공 요청 ≥1건인 distinct BYOK 키
+  paidActiveKeys: number; // 그중 isPaid=true (청구 기준)
+}
+
+// 과금 단위 집계: 청구월에 성공 요청이 있었던 distinct (endUserLabel, provider) 키 수.
+// distinct 키를 구한 뒤 enduserkeys로 조인해 isPaid 분리.
+export async function getActiveKeyStats(tenantId: string): Promise<ActiveKeyStats> {
+  await dbConnect();
+  const tid = new mongoose.Types.ObjectId(tenantId);
+  const monthStart = currentMonthStart();
+
+  const agg = await UsageRecord.aggregate<{ allActiveKeys: number; paidActiveKeys: number }>([
+    { $match: { tenantId: tid, createdAt: { $gte: monthStart } } },
+    { $group: { _id: { label: "$endUserLabel", provider: "$provider" } } },
+    {
+      $lookup: {
+        from: "enduserkeys",
+        let: { l: "$_id.label", p: "$_id.provider" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$tenantId", tid] },
+                  { $eq: ["$endUserLabel", "$$l"] },
+                  { $eq: ["$provider", "$$p"] },
+                ],
+              },
+            },
+          },
+          { $project: { isPaid: 1 } },
+        ],
+        as: "k",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        allActiveKeys: { $sum: 1 },
+        // 키 문서가 없거나(이미 삭제) isPaid!==false 면 유료로 카운트
+        paidActiveKeys: {
+          $sum: { $cond: [{ $eq: [{ $arrayElemAt: ["$k.isPaid", 0] }, false] }, 0, 1] },
+        },
+      },
+    },
+  ]);
+
+  return agg[0] ? { allActiveKeys: agg[0].allActiveKeys, paidActiveKeys: agg[0].paidActiveKeys } : { allActiveKeys: 0, paidActiveKeys: 0 };
+}
+
+// 이 키가 이번 청구월에 이미 활성(성공 요청 ≥1건)인지. Free 하드캡이 신규 키만 막도록 쓰임.
+export async function isKeyActiveThisMonth(
+  tenantId: mongoose.Types.ObjectId,
+  endUserLabel: string,
+  provider: ByokProvider
+): Promise<boolean> {
+  const exists = await UsageRecord.exists({
+    tenantId,
+    endUserLabel,
+    provider,
+    createdAt: { $gte: currentMonthStart() },
+  });
+  return exists != null;
 }
 
 export interface EndUserRow {

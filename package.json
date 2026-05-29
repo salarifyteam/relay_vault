@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "set-plan": "tsx --env-file=.env.local scripts/setPlan.ts"
   },
   "dependencies": {
     "@google-cloud/kms": "^5.5.0",
