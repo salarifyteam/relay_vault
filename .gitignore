@@ -28,3 +28,7 @@ secrets/
 
 # Firebase deploy cache
 .firebase/
+
+# package build artifacts + nested deps
+packages/*/node_modules
+packages/*/dist

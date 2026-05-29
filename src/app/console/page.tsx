@@ -94,10 +94,10 @@ export default async function ConsoleHome() {
           title="Embed the key widget"
           desc="Drop this into your app so users connect their own key — it goes straight to Relay."
         >
-          <CodeBlock>{`<div id="relay-pay"></div>
+          <CodeBlock>{`<div id="relay-widget"></div>
 <script src="https://vault.relayservice.im/widget.js"></script>
 <script>
-  RelayPay.mount('#relay-pay', {
+  Relay.mount('#relay-widget', {
     registrationToken: 'rgt_…',   // from your backend
     provider: 'openai',
   });
