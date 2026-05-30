@@ -1,11 +1,19 @@
 import crypto from "crypto";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getOAuthClient } from "@/lib/googleOAuth";
 import { SESSION_COOKIE_NAME } from "@/lib/authConstants";
 
-export async function GET() {
+// next 경로를 state에 안전하게 동봉(상대경로만 허용 — 오픈 리디렉트 방지).
+function encodeState(next: string | null): string {
+  const rand = crypto.randomBytes(16).toString("hex");
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return rand;
+  return rand + "." + Buffer.from(next, "utf8").toString("base64url");
+}
+
+export async function GET(req: NextRequest) {
   const client = getOAuthClient();
-  const state = crypto.randomBytes(16).toString("hex");
+  const next = new URL(req.url).searchParams.get("next");
+  const state = encodeState(next);
 
   const url = client.generateAuthUrl({
     access_type: "online",

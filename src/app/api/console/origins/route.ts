@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentDeveloper } from "@/lib/auth";
 import Tenant from "@/lib/models/Tenant";
+import { requireRole } from "@/lib/requireRole";
 
 export async function PATCH(req: NextRequest) {
   const me = await getCurrentDeveloper();
   if (!me) {
     return NextResponse.json({ error: { message: "Not authenticated" } }, { status: 401 });
   }
+  const forbidden = requireRole(me, "member");
+  if (forbidden) return forbidden;
 
   let body: { allowedOrigins?: unknown };
   try {

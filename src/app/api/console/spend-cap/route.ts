@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentDeveloper } from "@/lib/auth";
 import Tenant from "@/lib/models/Tenant";
 import { recordAudit } from "@/lib/audit";
+import { requireRole } from "@/lib/requireRole";
 
 // 테넌트 기본 스펜드캡(엔드유저당 USD 한도) 설정. null/빈값이면 무제한(해제).
 export async function PATCH(req: NextRequest) {
@@ -9,6 +10,8 @@ export async function PATCH(req: NextRequest) {
   if (!me) {
     return NextResponse.json({ error: { message: "Not authenticated" } }, { status: 401 });
   }
+  const forbidden = requireRole(me, "member");
+  if (forbidden) return forbidden;
 
   let body: { defaultUserSpendCapUsd?: unknown };
   try {

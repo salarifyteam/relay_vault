@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOAuthClient } from "@/lib/googleOAuth";
 import {
   upsertDeveloper,
-  ensureTenant,
   createSession,
   setSessionCookie,
   SESSION_COOKIE_NAME,
@@ -65,11 +64,23 @@ export async function GET(req: NextRequest) {
     picture: payload.picture,
   });
   const accountId = String(account._id);
-  await ensureTenant(accountId); // 첫 로그인 시 기본 테넌트 생성
+  // 기본 테넌트는 getCurrentDeveloper가 멤버십 0개일 때 lazy 생성(invite 수락과의 충돌 회피)
 
   const { sessionId, expiresAt } = await createSession(accountId);
 
-  const res = NextResponse.redirect(new URL("/console", appBase(req)));
+  // state = "<random>.<base64url(next)>" 형식이면 next로 리다이렉트. 아니면 /console.
+  let nextPath = "/console";
+  const dotIdx = state.indexOf(".");
+  if (dotIdx > 0) {
+    try {
+      const decoded = Buffer.from(state.slice(dotIdx + 1), "base64url").toString("utf8");
+      if (decoded.startsWith("/") && !decoded.startsWith("//")) nextPath = decoded;
+    } catch {
+      /* 디코드 실패 시 기본 /console */
+    }
+  }
+
+  const res = NextResponse.redirect(new URL(nextPath, appBase(req)));
   setSessionCookie(res, sessionId, expiresAt); // __session을 실제 세션ID로 덮어씀
   return res;
 }

@@ -3,6 +3,7 @@ import { getCurrentDeveloper } from "@/lib/auth";
 import { getTenantUsage, getActiveKeyStats, relativeTime } from "@/lib/usageStats";
 import { maskByokKey } from "@/lib/services/byokProvider";
 import { Shell, shellStyles } from "@/components/Shell";
+import { shellPropsFromMe } from "@/lib/shellProps";
 import { ApiKeyCard } from "@/components/ApiKeyCard";
 import {
   Card,
@@ -29,7 +30,7 @@ export default async function ConsoleHome() {
   return (
     <Shell
       title="Home"
-      account={{ name: me.account.name, email: me.account.email, picture: me.account.picture }}
+      {...shellPropsFromMe(me)}
     >
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>Home</h1>

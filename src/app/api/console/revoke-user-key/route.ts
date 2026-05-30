@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentDeveloper } from "@/lib/auth";
 import EndUserKey from "@/lib/models/EndUserKey";
 import { recordAudit } from "@/lib/audit";
+import { requireRole } from "@/lib/requireRole";
 import type { ByokProvider } from "@/lib/services/byokProvider";
 
 // 특정 엔드유저 BYOK 키를 비활성화(폐기). 테넌트 범위로만 동작.
@@ -10,6 +11,8 @@ export async function POST(req: NextRequest) {
   if (!me) {
     return NextResponse.json({ error: { message: "Not authenticated" } }, { status: 401 });
   }
+  const forbidden = requireRole(me, "member");
+  if (forbidden) return forbidden;
 
   let body: { endUserLabel?: unknown; provider?: unknown };
   try {

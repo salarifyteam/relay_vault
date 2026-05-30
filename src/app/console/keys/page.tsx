@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentDeveloper } from "@/lib/auth";
 import { maskByokKey } from "@/lib/services/byokProvider";
 import { Shell, shellStyles } from "@/components/Shell";
+import { shellPropsFromMe } from "@/lib/shellProps";
 import { ApiKeyCard } from "@/components/ApiKeyCard";
 import { Card, uiStyles } from "@/components/ui";
 
@@ -15,7 +16,7 @@ export default async function KeysPage() {
   return (
     <Shell
       title="API keys"
-      account={{ name: me.account.name, email: me.account.email, picture: me.account.picture }}
+      {...shellPropsFromMe(me)}
     >
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>API keys</h1>

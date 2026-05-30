@@ -4,12 +4,15 @@ import { generateRlyKey } from "@/lib/keys";
 import Tenant from "@/lib/models/Tenant";
 import { maskByokKey } from "@/lib/services/byokProvider";
 import { recordAudit } from "@/lib/audit";
+import { requireRole } from "@/lib/requireRole";
 
 export async function POST() {
   const me = await getCurrentDeveloper();
   if (!me) {
     return NextResponse.json({ error: { message: "Not authenticated" } }, { status: 401 });
   }
+  const forbidden = requireRole(me, "member");
+  if (forbidden) return forbidden;
   const rlyKey = generateRlyKey();
   await Tenant.updateOne({ _id: me.tenant._id }, { $set: { rlyKey } });
   await recordAudit({

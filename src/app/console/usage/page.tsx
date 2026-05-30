@@ -4,6 +4,7 @@ import { getTenantUsage, getActiveKeyStats, relativeTime } from "@/lib/usageStat
 import { PLANS } from "@/lib/billing/plans";
 import { estimateBill, suggestUpgrade } from "@/lib/billing/estimate";
 import { Shell, shellStyles } from "@/components/Shell";
+import { shellPropsFromMe } from "@/lib/shellProps";
 import { Card, StatCard, StatCardGrid, EmptyState, uiStyles } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ export default async function UsagePage() {
   return (
     <Shell
       title="Usage"
-      account={{ name: me.account.name, email: me.account.email, picture: me.account.picture }}
+      {...shellPropsFromMe(me)}
     >
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>Usage</h1>
