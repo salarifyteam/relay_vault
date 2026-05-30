@@ -9,6 +9,7 @@ import {
   Users,
   ChartBar,
   BookOpen,
+  Wallet,
   Settings,
   ChevronDown,
   LogOut,
@@ -20,6 +21,7 @@ const NAV = [
   { href: "/console/keys", label: "API keys", icon: KeyRound },
   { href: "/console/users", label: "End-users", icon: Users },
   { href: "/console/usage", label: "Usage", icon: ChartBar },
+  { href: "/console/billing", label: "Billing", icon: Wallet },
   { href: "/console/docs", label: "Docs", icon: BookOpen },
 ];
 
