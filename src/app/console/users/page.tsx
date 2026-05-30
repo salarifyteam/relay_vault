@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentDeveloper } from "@/lib/auth";
 import { getTenantEndUsers } from "@/lib/usageStats";
 import { Shell, shellStyles } from "@/components/Shell";
+import { shellPropsFromMe } from "@/lib/shellProps";
 import { Card, StatusPill, EmptyState, uiStyles } from "@/components/ui";
 import { EndUserActions } from "@/components/EndUserActions";
 
@@ -15,7 +16,7 @@ export default async function EndUsersPage() {
   return (
     <Shell
       title="End-users"
-      account={{ name: me.account.name, email: me.account.email, picture: me.account.picture }}
+      {...shellPropsFromMe(me)}
     >
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>End-users</h1>

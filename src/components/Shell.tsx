@@ -10,11 +10,13 @@ import {
   ChartBar,
   BookOpen,
   Wallet,
+  UserPlus,
   Settings,
   ChevronDown,
   LogOut,
 } from "lucide-react";
 import s from "./Shell.module.css";
+import { TenantPicker, type TenantPickerItem } from "./TenantPicker";
 
 const NAV = [
   { href: "/console", label: "Home", icon: House },
@@ -22,6 +24,7 @@ const NAV = [
   { href: "/console/users", label: "End-users", icon: Users },
   { href: "/console/usage", label: "Usage", icon: ChartBar },
   { href: "/console/billing", label: "Billing", icon: Wallet },
+  { href: "/console/members", label: "Members", icon: UserPlus },
   { href: "/console/docs", label: "Docs", icon: BookOpen },
 ];
 
@@ -34,10 +37,14 @@ export type ShellAccount = {
 export function Shell({
   title,
   account,
+  tenant,
+  tenants,
   children,
 }: {
   title: string;
   account: ShellAccount;
+  tenant?: TenantPickerItem;
+  tenants?: TenantPickerItem[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -88,6 +95,7 @@ export function Shell({
         <header className={s.topbar}>
           <span className={s.topTitle}>{title}</span>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {tenant && tenants && <TenantPicker current={tenant} tenants={tenants} />}
             <span className={s.testBadge}>● Test mode</span>
             <div className={s.accountWrap}>
               <button className={s.account} onClick={() => setMenuOpen((o) => !o)}>

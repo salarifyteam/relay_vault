@@ -1,6 +1,17 @@
 import s from "./login.module.css";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  // 상대경로만 허용(오픈 리디렉트 방지)
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : undefined;
+  const googleHref = safeNext
+    ? `/api/auth/google?next=${encodeURIComponent(safeNext)}`
+    : "/api/auth/google";
+
   return (
     <div className={s.wrap}>
       <div className={s.left}>
@@ -16,7 +27,7 @@ export default function LoginPage() {
             touch a raw key.
           </p>
 
-          <a href="/api/auth/google" className={s.googleBtn}>
+          <a href={googleHref} className={s.googleBtn}>
             <GoogleMark />
             Continue with Google
           </a>

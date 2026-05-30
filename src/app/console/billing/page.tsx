@@ -4,6 +4,7 @@ import { getActiveKeyStats } from "@/lib/usageStats";
 import { PLANS } from "@/lib/billing/plans";
 import { estimateBill } from "@/lib/billing/estimate";
 import { Shell, shellStyles } from "@/components/Shell";
+import { shellPropsFromMe } from "@/lib/shellProps";
 import { Card, StatCard, StatCardGrid, uiStyles } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default async function BillingPage() {
   return (
     <Shell
       title="Billing"
-      account={{ name: me.account.name, email: me.account.email, picture: me.account.picture }}
+      {...shellPropsFromMe(me)}
     >
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>Billing</h1>
