@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronDown,
   LogOut,
+  Zap,
 } from "lucide-react";
 import s from "./Shell.module.css";
 import { TenantPicker, type TenantPickerItem } from "./TenantPicker";
@@ -21,6 +22,7 @@ import { TenantPicker, type TenantPickerItem } from "./TenantPicker";
 const NAV = [
   { href: "/console", label: "Home", icon: House },
   { href: "/console/keys", label: "API keys", icon: KeyRound },
+  { href: "/console/playground", label: "Playground", icon: Zap },
   { href: "/console/users", label: "End-users", icon: Users },
   { href: "/console/usage", label: "Usage", icon: ChartBar },
   { href: "/console/billing", label: "Billing", icon: Wallet },

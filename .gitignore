@@ -15,6 +15,7 @@
 .env
 .env.local
 .env*.local
+.env.test
 
 # typescript
 *.tsbuildinfo
@@ -32,3 +33,17 @@ secrets/
 # package build artifacts + nested deps
 packages/*/node_modules
 packages/*/dist
+
+# test artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/coverage/
+
+# python SDK artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+packages/*/.venv/
+packages/sdk-python/dist/

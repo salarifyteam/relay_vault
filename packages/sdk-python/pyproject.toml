@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "relay-sdk"
+version = "0.1.0"
+description = "Relay Python SDK — BYOK AI infrastructure (OpenAI-compatible proxy)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Relay" }]
+keywords = ["relay", "openai", "byok", "ai", "llm", "proxy"]
+dependencies = [
+    "openai>=1.0",
+]
+
+[project.urls]
+Homepage = "https://relayservice.im"
+Documentation = "https://relayservice.im/docs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/relay"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
