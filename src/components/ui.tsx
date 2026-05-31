@@ -123,4 +123,51 @@ export function CodeBlock({ children }: { children: string }) {
   );
 }
 
+// ── 폼 프리미티브 (Playground 등에서 재사용). 기존 인라인 input 스타일과 통일. ──
+
+const controlStyle: React.CSSProperties = {
+  width: "100%",
+  fontSize: 13,
+  padding: "8px 10px",
+  borderRadius: 8,
+  border: "1px solid var(--line)",
+  background: "var(--bg-1)",
+  color: "var(--ink-1)",
+  fontFamily: "inherit",
+};
+
+export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: "block", marginBottom: 12 }}>
+      <div style={{ fontSize: 12, color: "var(--ink-2)", marginBottom: 6, fontWeight: 600 }}>{label}</div>
+      {children}
+      {hint && <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4 }}>{hint}</div>}
+    </label>
+  );
+}
+
+export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const { style, ...rest } = props;
+  return <input {...rest} style={{ ...controlStyle, ...style }} />;
+}
+
+export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const { style, ...rest } = props;
+  return (
+    <textarea
+      {...rest}
+      style={{ ...controlStyle, resize: "vertical", minHeight: 90, fontFamily: "var(--font-mono), ui-monospace, monospace", ...style }}
+    />
+  );
+}
+
+export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const { style, children, ...rest } = props;
+  return (
+    <select {...rest} style={{ ...controlStyle, cursor: "pointer", ...style }}>
+      {children}
+    </select>
+  );
+}
+
 export { s as uiStyles };
