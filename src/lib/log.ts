@@ -6,6 +6,7 @@ type Level = "info" | "warn" | "error";
 export interface LogFields {
   requestId?: string;
   tenantId?: string;
+  environment?: string;
   provider?: string;
   model?: string;
   status?: number;
