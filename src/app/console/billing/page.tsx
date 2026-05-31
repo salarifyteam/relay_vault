@@ -16,7 +16,7 @@ export default async function BillingPage() {
   const me = await getCurrentDeveloper();
   if (!me) redirect("/login");
   const tenantId = String(me.tenant._id);
-  const keys = await getActiveKeyStats(tenantId);
+  const keys = await getActiveKeyStats(tenantId, "live");
   const plan = PLANS[me.tenant.plan];
   const bill = estimateBill(me.tenant.plan, keys.paidActiveKeys);
 

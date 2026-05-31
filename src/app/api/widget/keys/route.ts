@@ -86,11 +86,13 @@ export async function POST(req: NextRequest) {
   await EndUserKey.findOneAndUpdate(
     {
       tenantId: tenant._id,
+      environment: tokenDoc.environment,
       endUserLabel: tokenDoc.endUserLabel,
       provider,
     },
     {
       tenantId: tenant._id,
+      environment: tokenDoc.environment,
       endUserLabel: tokenDoc.endUserLabel,
       provider,
       keyEncrypted: sealed.ciphertext,
