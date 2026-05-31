@@ -7,7 +7,8 @@ import {
   OPENAI_COMPATIBLE,
 } from "@/lib/providerRouting";
 import { buildEmbedRequest, inputsOf, valuesFromEmbed, embeddingsResponseToOpenAI } from "@/lib/providers/googleEmbeddings";
-import { oaiError, assertBodySize, authenticateAndAuthorize, recordUsage } from "@/lib/proxyCommon";
+import { assertBodySize, authenticateAndAuthorize, recordUsage } from "@/lib/proxyCommon";
+import { relayError } from "@/lib/errors/relayError";
 import { upstreamFetch } from "@/lib/upstreamFetch";
 import { logInfo, logWarn } from "@/lib/log";
 
@@ -32,23 +33,23 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as EmbeddingsBody;
   } catch {
-    return oaiError("Invalid JSON body", 400, "invalid_request_error", requestId);
+    return relayError("invalid_json", "Invalid JSON body", requestId);
   }
   const model = body.model;
   if (!model || typeof model !== "string") {
-    return oaiError("Missing 'model' in request body", 400, "invalid_request_error", requestId);
+    return relayError("model_missing", "Missing 'model' in request body", requestId);
   }
   if (body.input == null || (typeof body.input !== "string" && !Array.isArray(body.input))) {
-    return oaiError("Missing or invalid 'input' in request body", 400, "invalid_request_error", requestId);
+    return relayError("input_missing", "Missing or invalid 'input' in request body", requestId);
   }
 
   const provider = providerFromEmbeddingModel(model);
   if (!provider) {
-    return oaiError(`Unknown embedding model '${model}' — cannot route to a provider`, 400, "invalid_request_error", requestId);
+    return relayError("model_unknown", `Unknown embedding model '${model}' — cannot route to a provider`, requestId);
   }
   // anthropic은 임베딩 API가 없음 — 업스트림/계량 없이 깔끔히 거부
   if (provider === "anthropic") {
-    return oaiError("Embeddings are not supported for anthropic models", 400, "invalid_request_error", requestId);
+    return relayError("embeddings_unsupported", "Embeddings are not supported for anthropic models", requestId);
   }
 
   const authz = await authenticateAndAuthorize(req, { provider, model, requestId });
