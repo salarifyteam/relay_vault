@@ -1,8 +1,10 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import type { ByokProvider } from "@/lib/services/byokProvider";
+import type { Environment } from "@/lib/keys";
 
 export interface IEndUserKey extends Document {
   tenantId: mongoose.Types.ObjectId;
+  environment: Environment;
   endUserLabel: string;
   provider: ByokProvider;
   keyEncrypted: string;
@@ -30,6 +32,7 @@ const EndUserKeySchema = new Schema<IEndUserKey>(
       required: true,
       index: true,
     },
+    environment: { type: String, enum: ["test", "live"], required: true, default: "live" },
     endUserLabel: { type: String, required: true },
     provider: {
       type: String,
@@ -58,8 +61,9 @@ const EndUserKeySchema = new Schema<IEndUserKey>(
   { timestamps: true }
 );
 
+// 환경 포함 유니크: 같은 endUserLabel이 test/live에 각각 키를 등록할 수 있다.
 EndUserKeySchema.index(
-  { tenantId: 1, endUserLabel: 1, provider: 1 },
+  { tenantId: 1, environment: 1, endUserLabel: 1, provider: 1 },
   { unique: true }
 );
 EndUserKeySchema.index({ ownerUserId: 1 }, { sparse: true });

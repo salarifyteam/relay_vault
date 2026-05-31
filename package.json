@@ -9,7 +9,12 @@
     "lint": "next lint",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "set-plan": "tsx --env-file=.env.local scripts/setPlan.ts",
-    "rbac-backfill": "tsx --env-file=.env.local scripts/rbacBackfill.ts"
+    "rbac-backfill": "tsx --env-file=.env.local scripts/rbacBackfill.ts",
+    "migrate-api-keys": "tsx --env-file=.env.local scripts/migrateApiKeys.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "dev:test-db": "bash -c 'set -a; . ./.env.test; set +a; next dev'"
   },
   "dependencies": {
     "@google-cloud/kms": "^5.5.0",
@@ -20,11 +25,15 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.7",
     "dotenv": "^16.4.7",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.7"
   }
 }

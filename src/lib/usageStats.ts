@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongodb";
 import UsageRecord from "@/lib/models/UsageRecord";
 import EndUserKey from "@/lib/models/EndUserKey";
 import type { ByokProvider } from "@/lib/services/byokProvider";
+import type { Environment } from "@/lib/keys";
 
 // 청구월 시작(이번 달 1일 00:00, 서버 로컬). 활성키·사용량 집계가 공유.
 export function currentMonthStart(): Date {
@@ -26,15 +27,21 @@ export interface TenantUsage {
   recent: RecentRequest[];
 }
 
-// 제공자(테넌트) 단위 — 모든 엔드유저에 걸친 이번 달 집계
-export async function getTenantUsage(tenantId: string, recentLimit = 8): Promise<TenantUsage> {
+// 제공자(테넌트) 단위 — 모든 엔드유저에 걸친 이번 달 집계.
+// environment 생략 시 전체 환경 합산(현재 대시보드 동작 유지). 지정 시 해당 환경만.
+export async function getTenantUsage(
+  tenantId: string,
+  recentLimit = 8,
+  environment?: Environment
+): Promise<TenantUsage> {
   await dbConnect();
   const tid = new mongoose.Types.ObjectId(tenantId);
   const monthStart = currentMonthStart();
+  const envFilter = environment ? { environment } : {};
 
   const [agg, endUsers, recentDocs] = await Promise.all([
     UsageRecord.aggregate<{ requests: number; costUsd: number }>([
-      { $match: { tenantId: tid, createdAt: { $gte: monthStart } } },
+      { $match: { tenantId: tid, ...envFilter, createdAt: { $gte: monthStart } } },
       {
         $group: {
           _id: null,
@@ -43,8 +50,8 @@ export async function getTenantUsage(tenantId: string, recentLimit = 8): Promise
         },
       },
     ]),
-    EndUserKey.countDocuments({ tenantId: tid, isActive: true }),
-    UsageRecord.find({ tenantId: tid })
+    EndUserKey.countDocuments({ tenantId: tid, ...envFilter, isActive: true }),
+    UsageRecord.find({ tenantId: tid, ...envFilter })
       .sort({ createdAt: -1 })
       .limit(recentLimit)
       .lean(),
@@ -73,13 +80,17 @@ export interface ActiveKeyStats {
 
 // 과금 단위 집계: 청구월에 성공 요청이 있었던 distinct (endUserLabel, provider) 키 수.
 // distinct 키를 구한 뒤 enduserkeys로 조인해 isPaid 분리.
-export async function getActiveKeyStats(tenantId: string): Promise<ActiveKeyStats> {
+// environment로 격리 — Free 하드캡이 환경별로 적용되므로 양쪽($match·$lookup)을 모두 환경 제약.
+export async function getActiveKeyStats(
+  tenantId: string,
+  environment: Environment
+): Promise<ActiveKeyStats> {
   await dbConnect();
   const tid = new mongoose.Types.ObjectId(tenantId);
   const monthStart = currentMonthStart();
 
   const agg = await UsageRecord.aggregate<{ allActiveKeys: number; paidActiveKeys: number }>([
-    { $match: { tenantId: tid, createdAt: { $gte: monthStart } } },
+    { $match: { tenantId: tid, environment, createdAt: { $gte: monthStart } } },
     { $group: { _id: { label: "$endUserLabel", provider: "$provider" } } },
     {
       $lookup: {
@@ -91,6 +102,7 @@ export async function getActiveKeyStats(tenantId: string): Promise<ActiveKeyStat
               $expr: {
                 $and: [
                   { $eq: ["$tenantId", tid] },
+                  { $eq: ["$environment", environment] },
                   { $eq: ["$endUserLabel", "$$l"] },
                   { $eq: ["$provider", "$$p"] },
                 ],
@@ -120,11 +132,13 @@ export async function getActiveKeyStats(tenantId: string): Promise<ActiveKeyStat
 // 이 키가 이번 청구월에 이미 활성(성공 요청 ≥1건)인지. Free 하드캡이 신규 키만 막도록 쓰임.
 export async function isKeyActiveThisMonth(
   tenantId: mongoose.Types.ObjectId,
+  environment: Environment,
   endUserLabel: string,
   provider: ByokProvider
 ): Promise<boolean> {
   const exists = await UsageRecord.exists({
     tenantId,
+    environment,
     endUserLabel,
     provider,
     createdAt: { $gte: currentMonthStart() },
@@ -143,11 +157,15 @@ export interface EndUserRow {
   lastValidatedAt?: Date;
 }
 
-// 제공자 테넌트에 연결된 엔드유저(=각자 BYOK 키) 목록
-export async function getTenantEndUsers(tenantId: string): Promise<EndUserRow[]> {
+// 제공자 테넌트에 연결된 엔드유저(=각자 BYOK 키) 목록.
+// environment 생략 시 전체 환경(현재 동작 유지). 지정 시 해당 환경만.
+export async function getTenantEndUsers(
+  tenantId: string,
+  environment?: Environment
+): Promise<EndUserRow[]> {
   await dbConnect();
   const tid = new mongoose.Types.ObjectId(tenantId);
-  const docs = await EndUserKey.find({ tenantId: tid })
+  const docs = await EndUserKey.find({ tenantId: tid, ...(environment ? { environment } : {}) })
     .sort({ updatedAt: -1 })
     .limit(100)
     .lean();

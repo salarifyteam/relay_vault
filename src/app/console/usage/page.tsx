@@ -16,8 +16,8 @@ export default async function UsagePage() {
   if (!me) redirect("/login");
   const tenantId = String(me.tenant._id);
   const [usage, keys] = await Promise.all([
-    getTenantUsage(tenantId, 40),
-    getActiveKeyStats(tenantId),
+    getTenantUsage(tenantId, 40, "live"),
+    getActiveKeyStats(tenantId, "live"),
   ]);
   const plan = PLANS[me.tenant.plan];
   const bill = estimateBill(me.tenant.plan, keys.paidActiveKeys);

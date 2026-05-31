@@ -1,8 +1,10 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import type { ByokProvider } from "@/lib/services/byokProvider";
+import type { Environment } from "@/lib/keys";
 
 export interface IUsageRecord extends Document {
   tenantId: mongoose.Types.ObjectId;
+  environment: Environment;
   endUserLabel: string;
   provider: ByokProvider;
   modelName: string;
@@ -23,6 +25,7 @@ const UsageRecordSchema = new Schema<IUsageRecord>(
       ref: "Tenant",
       required: true,
     },
+    environment: { type: String, enum: ["test", "live"], required: true, default: "live" },
     endUserLabel: { type: String, required: true },
     provider: {
       type: String,
@@ -40,7 +43,7 @@ const UsageRecordSchema = new Schema<IUsageRecord>(
   { timestamps: true }
 );
 
-UsageRecordSchema.index({ tenantId: 1, endUserLabel: 1, createdAt: -1 });
+UsageRecordSchema.index({ tenantId: 1, environment: 1, endUserLabel: 1, createdAt: -1 });
 
 const UsageRecord: Model<IUsageRecord> =
   mongoose.models.UsageRecord ||

@@ -7,7 +7,6 @@ import DeveloperAccount, { IDeveloperAccount } from "@/lib/models/DeveloperAccou
 import Session from "@/lib/models/Session";
 import Tenant, { ITenant } from "@/lib/models/Tenant";
 import TenantMember, { type TenantRole } from "@/lib/models/TenantMember";
-import { generateRlyKey } from "@/lib/keys";
 import { SESSION_COOKIE_NAME } from "@/lib/authConstants";
 
 export { SESSION_COOKIE_NAME };
@@ -114,13 +113,14 @@ export async function getCurrentDeveloper(): Promise<CurrentDeveloper | null> {
 }
 
 // 개발자당 기본 테넌트 보장 (첫 로그인). Tenant + 본인의 owner TenantMember를 함께 생성.
+// 키는 자동 발급하지 않는다 — 평문은 생성 시 1회만 노출되므로, 콘솔 keys 페이지에서
+// 사용자가 직접 test/live 키를 만들고 그 자리에서 복사한다(Stripe와 동일한 reveal-once UX).
 export async function ensureTenant(accountId: string): Promise<ITenant> {
   await dbConnect();
   let tenant = await Tenant.findOne({ ownerAccountId: accountId });
   if (!tenant) {
     tenant = await Tenant.create({
       name: "My App",
-      rlyKey: generateRlyKey(),
       allowedOrigins: [],
       ownerAccountId: accountId,
     });

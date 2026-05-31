@@ -2,7 +2,10 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 // 민감 작업 감사 기록. "누가 언제 무엇을 했나"를 DB에 영속(stdout 로그는 휘발성이라 별개).
 export type AuditAction =
-  | "key_regenerated" // rly- 키 재발급
+  | "key_regenerated" // rly- 키 재발급(레거시 alias)
+  | "api_key_created" // API 키 발급(test/live)
+  | "api_key_rolled" // API 키 롤(신규 발급 + 기존 폐기)
+  | "api_key_revoked" // API 키 폐기
   | "enduser_key_revoked" // 엔드유저 BYOK 키 비활성화
   | "spend_cap_updated" // 스펜드캡 변경
   | "plan_changed" // 플랜 변경

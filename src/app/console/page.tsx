@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentDeveloper } from "@/lib/auth";
 import { getTenantUsage, getActiveKeyStats, relativeTime } from "@/lib/usageStats";
-import { maskByokKey } from "@/lib/services/byokProvider";
 import { Shell, shellStyles } from "@/components/Shell";
 import { shellPropsFromMe } from "@/lib/shellProps";
-import { ApiKeyCard } from "@/components/ApiKeyCard";
 import {
   Card,
   StatCard,
   StatCardGrid,
   CodeBlock,
   EmptyState,
+  Button,
   uiStyles,
 } from "@/components/ui";
 
@@ -20,11 +20,11 @@ export default async function ConsoleHome() {
   const me = await getCurrentDeveloper();
   if (!me) redirect("/login");
 
-  const rlyKey = me.tenant.rlyKey;
   const tenantId = String(me.tenant._id);
+  // 홈 대시보드는 live 비즈니스 지표를 보여준다(과금 기준).
   const [usage, keys] = await Promise.all([
-    getTenantUsage(tenantId),
-    getActiveKeyStats(tenantId),
+    getTenantUsage(tenantId, 8, "live"),
+    getActiveKeyStats(tenantId, "live"),
   ]);
 
   return (
@@ -40,7 +40,20 @@ export default async function ConsoleHome() {
       </div>
 
       <div className={shellStyles.stack}>
-        <ApiKeyCard initialKey={rlyKey} initialMasked={maskByokKey(rlyKey)} />
+        <Card
+          title="API keys"
+          desc="Create and manage your test and live keys. The full key is shown once at creation."
+          action={
+            <Link href="/console/keys">
+              <Button variant="secondary" size="sm">Manage keys</Button>
+            </Link>
+          }
+        >
+          <p style={{ margin: 0, color: "var(--ink-3)", fontSize: 13 }}>
+            Use a <b>test</b> key while building and a <b>live</b> key in production — they&apos;re
+            fully isolated.
+          </p>
+        </Card>
 
         <div>
           <div className={uiStyles.eyebrow} style={{ marginBottom: 10 }}>

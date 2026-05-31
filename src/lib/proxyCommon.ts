@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Tenant, { type ITenant } from "@/lib/models/Tenant";
+import ApiKey from "@/lib/models/ApiKey";
 import EndUserKey, { type IEndUserKey } from "@/lib/models/EndUserKey";
 import UsageRecord from "@/lib/models/UsageRecord";
 import { getCrypto } from "@/lib/crypto";
@@ -10,6 +11,8 @@ import { getActiveKeyStats, isKeyActiveThisMonth } from "@/lib/usageStats";
 import { PLANS } from "@/lib/billing/plans";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { normalizeUsage, estimateCostUsd } from "@/lib/costCalculator";
+import { hashApiKey, type Environment } from "@/lib/keys";
+import { relayError } from "@/lib/errors/relayError";
 import { logWarn } from "@/lib/log";
 import type { ByokProvider } from "@/lib/services/byokProvider";
 
@@ -21,29 +24,18 @@ export const SSE_HEADERS: Record<string, string> = {
 
 const MAX_BODY_BYTES = 1_000_000;
 
-// OpenAI 형식 에러 응답. 모든 출구가 X-Relay-Request-Id를 달도록 requestId를 받는다.
-export function oaiError(
-  message: string,
-  status: number,
-  type = "invalid_request_error",
-  requestId?: string
-) {
-  const headers: Record<string, string> = {};
-  if (requestId) headers["X-Relay-Request-Id"] = requestId;
-  return NextResponse.json({ error: { message, type } }, { status, headers });
-}
-
 // Content-Length 기반 본문 크기 제한. (위조 가능 → Cloud Run 자체 한도가 백스톱)
 export function assertBodySize(req: NextRequest, requestId: string): NextResponse | null {
   const len = Number(req.headers.get("content-length") || 0);
   if (len > MAX_BODY_BYTES) {
-    return oaiError("Request body too large (max 1MB)", 413, "invalid_request_error", requestId);
+    return relayError("request_too_large", "Request body too large (max 1MB)", requestId);
   }
   return null;
 }
 
 export interface ProxyIds {
   tenantId: mongoose.Types.ObjectId;
+  environment: Environment;
   endUserKeyId: mongoose.Types.ObjectId;
   endUserLabel: string;
   provider: ByokProvider;
@@ -54,6 +46,7 @@ export interface ProxyIds {
 
 export interface AuthContext {
   tenant: ITenant;
+  environment: Environment;
   endUserKey: IEndUserKey;
   apiKey: string;
   provider: ByokProvider;
@@ -76,52 +69,63 @@ export async function authenticateAndAuthorize(
   const { provider, model, requestId } = params;
 
   const auth = req.headers.get("authorization") || "";
-  const rlyKey = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!rlyKey.startsWith("rly-")) {
-    return { ok: false, response: oaiError("Missing or invalid Relay key (expected 'Bearer rly-...')", 401, "invalid_request_error", requestId) };
+  const secret = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  // rly_live_… / rly_test_…(신규) 와 rly-…(레거시) 모두 허용.
+  if (!/^rly[_-]/.test(secret)) {
+    return { ok: false, response: relayError("relay_key_invalid", "Missing or invalid Relay key (expected 'Bearer rly_...')", requestId) };
   }
 
   const endUserLabel = req.headers.get("x-relay-user")?.trim();
   if (!endUserLabel) {
-    return { ok: false, response: oaiError("Missing X-Relay-User header", 400, "invalid_request_error", requestId) };
+    return { ok: false, response: relayError("user_header_missing", "Missing X-Relay-User header", requestId) };
   }
   const isPaid = req.headers.get("x-relay-paid")?.trim().toLowerCase() !== "false";
 
   await dbConnect();
 
-  const tenant = await Tenant.findOne({ rlyKey, status: "active" });
-  if (!tenant) {
-    return { ok: false, response: oaiError("Unknown or disabled Relay key", 401, "invalid_request_error", requestId) };
+  // 키 해시로 ApiKey 조회 → 테넌트 + 환경(test/live) 도출. 평문은 DB에 없다.
+  const apiKeyDoc = await ApiKey.findOne({ keyHash: hashApiKey(secret), status: "active" });
+  if (!apiKeyDoc) {
+    return { ok: false, response: relayError("relay_key_revoked", "Unknown or revoked Relay key", requestId) };
+  }
+  const tenant = await Tenant.findById(apiKeyDoc.tenantId);
+  if (!tenant || tenant.status !== "active") {
+    return { ok: false, response: relayError("relay_tenant_disabled", "Unknown or disabled Relay key", requestId) };
   }
   const tid = tenant._id as mongoose.Types.ObjectId;
+  const environment = apiKeyDoc.environment;
 
-  // 레이트리밋(테넌트별 분당) — 스로틀된 요청은 복호화하지 않도록 일찍 검사
-  const rl = await checkRateLimit(tid, PLANS[tenant.plan].reqPerMin);
+  // lastUsedAt 베스트에포트(차단·계량 흐름을 막지 않도록 await만, 실패 무시)
+  ApiKey.updateOne({ _id: apiKeyDoc._id }, { $set: { lastUsedAt: new Date() } }).catch(() => {});
+
+  // 레이트리밋(테넌트×환경별 분당) — 스로틀된 요청은 복호화하지 않도록 일찍 검사
+  const rl = await checkRateLimit(tid, environment, PLANS[tenant.plan].reqPerMin);
   if (!rl.ok) {
-    logWarn("rate_limited", { requestId, tenantId: String(tid), provider, model });
-    const res = oaiError(`Rate limit exceeded (${PLANS[tenant.plan].reqPerMin}/min for the ${PLANS[tenant.plan].label} plan)`, 429, "rate_limit_error", requestId);
+    logWarn("rate_limited", { requestId, tenantId: String(tid), environment, provider, model });
+    const res = relayError("rate_limit_exceeded", `Rate limit exceeded (${PLANS[tenant.plan].reqPerMin}/min for the ${PLANS[tenant.plan].label} plan)`, requestId);
     res.headers.set("Retry-After", String(rl.retryAfterSec));
     return { ok: false, response: res };
   }
 
-  const endUserKey = await EndUserKey.findOne({ tenantId: tid, endUserLabel, provider, isActive: true });
+  const endUserKey = await EndUserKey.findOne({ tenantId: tid, environment, endUserLabel, provider, isActive: true });
   if (!endUserKey || endUserKey.validationState === "invalid") {
-    return { ok: false, response: oaiError(`No usable ${provider} key registered for user '${endUserLabel}'`, 404, "invalid_request_error", requestId) };
+    return { ok: false, response: relayError("enduser_key_missing", `No usable ${provider} key registered for user '${endUserLabel}'`, requestId) };
   }
 
   const gate = checkRequest({ endUserKey, tenant, model });
   if (!gate.allow) {
-    return { ok: false, response: oaiError(gate.reason || "Request blocked by policy", gate.status || 403, "invalid_request_error", requestId) };
+    // gate가 code를 명명하면 그걸 쓰고, 아니면 spend_cap_exceeded(현재 유일한 gate)로 폴백.
+    return { ok: false, response: relayError(gate.code ?? "spend_cap_exceeded", gate.reason || "Request blocked by policy", requestId) };
   }
 
-  // Free 플랜 활성키 하드캡: 신규 키만 차단(이미 활성인 키는 통과). 유료 플랜은 조회 자체를 건너뜀.
+  // Free 플랜 활성키 하드캡(환경별): 신규 키만 차단(이미 활성인 키는 통과). 유료 플랜은 조회 자체를 건너뜀.
   const hardCap = PLANS[tenant.plan].hardCapKeys;
   if (hardCap != null) {
-    const alreadyActive = await isKeyActiveThisMonth(tid, endUserLabel, provider);
+    const alreadyActive = await isKeyActiveThisMonth(tid, environment, endUserLabel, provider);
     if (!alreadyActive) {
-      const { allActiveKeys } = await getActiveKeyStats(String(tid));
+      const { allActiveKeys } = await getActiveKeyStats(String(tid), environment);
       if (allActiveKeys >= hardCap) {
-        return { ok: false, response: oaiError(`Active-key limit reached for the ${PLANS[tenant.plan].label} plan (${hardCap}). Upgrade to add more end-user keys.`, 429, "rate_limit_error", requestId) };
+        return { ok: false, response: relayError("active_key_limit", `Active-key limit reached for the ${PLANS[tenant.plan].label} plan (${hardCap}). Upgrade to add more end-user keys.`, requestId) };
       }
     }
   }
@@ -133,11 +137,12 @@ export async function authenticateAndAuthorize(
       { tenantId: String(tid) }
     );
   } catch {
-    return { ok: false, response: oaiError("Failed to decrypt stored key", 500, "api_error", requestId) };
+    return { ok: false, response: relayError("key_decrypt_failed", "Failed to decrypt stored key", requestId) };
   }
 
   const ids: ProxyIds = {
     tenantId: tid,
+    environment,
     endUserKeyId: endUserKey._id as mongoose.Types.ObjectId,
     endUserLabel,
     provider,
@@ -146,12 +151,13 @@ export async function authenticateAndAuthorize(
     requestId,
   };
 
-  return { ok: true, ctx: { tenant, endUserKey, apiKey, provider, endUserLabel, isPaid, ids } };
+  return { ok: true, ctx: { tenant, environment, endUserKey, apiKey, provider, endUserLabel, isPaid, ids } };
 }
 
 // 사용량 기록 + 엔드유저 키 활성/지출 갱신. requestId는 Relay 자체 ID(로그·헤더의 조인 키).
 export async function recordUsage(params: {
   tenantId: mongoose.Types.ObjectId;
+  environment: Environment;
   endUserKeyId: mongoose.Types.ObjectId;
   endUserLabel: string;
   provider: ByokProvider;
@@ -165,6 +171,7 @@ export async function recordUsage(params: {
   const cost = estimateCostUsd(params.model, tokens);
   await UsageRecord.create({
     tenantId: params.tenantId,
+    environment: params.environment,
     endUserLabel: params.endUserLabel,
     provider: params.provider,
     modelName: params.model,

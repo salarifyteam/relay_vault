@@ -3,7 +3,6 @@ import type { PlanId } from "@/lib/billing/plans";
 
 export interface ITenant extends Document {
   name: string;
-  rlyKey: string;
   allowedOrigins: string[];
   defaultUserSpendCapUsd?: number;
   plan: PlanId;
@@ -13,10 +12,10 @@ export interface ITenant extends Document {
   updatedAt: Date;
 }
 
+// API 키는 별도 ApiKey 컬렉션(해시 저장)으로 이동. Tenant엔 평문 키를 두지 않는다.
 const TenantSchema = new Schema<ITenant>(
   {
     name: { type: String, required: true, trim: true },
-    rlyKey: { type: String, required: true, unique: true },
     allowedOrigins: { type: [String], default: [] },
     defaultUserSpendCapUsd: { type: Number, required: false },
     plan: {
