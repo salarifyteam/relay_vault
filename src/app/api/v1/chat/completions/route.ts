@@ -10,13 +10,13 @@ import { anthropicAdapter } from "@/lib/providers/anthropic";
 import { googleAdapter } from "@/lib/providers/google";
 import { toOpenAIError, type OAIRequest, type ProviderAdapter } from "@/lib/providers/shared";
 import {
-  oaiError,
   assertBodySize,
   authenticateAndAuthorize,
   recordUsage,
   meterStream,
   SSE_HEADERS,
 } from "@/lib/proxyCommon";
+import { relayError } from "@/lib/errors/relayError";
 import { upstreamFetch } from "@/lib/upstreamFetch";
 import { logInfo, logWarn } from "@/lib/log";
 
@@ -36,17 +36,17 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as OAIRequest;
   } catch {
-    return oaiError("Invalid JSON body", 400, "invalid_request_error", requestId);
+    return relayError("invalid_json", "Invalid JSON body", requestId);
   }
   const model = body.model;
   if (!model || typeof model !== "string") {
-    return oaiError("Missing 'model' in request body", 400, "invalid_request_error", requestId);
+    return relayError("model_missing", "Missing 'model' in request body", requestId);
   }
   const isStream = body.stream === true;
 
   const provider = providerFromModel(model);
   if (!provider) {
-    return oaiError(`Unknown model '${model}' — cannot route to a provider`, 400, "invalid_request_error", requestId);
+    return relayError("model_unknown", `Unknown model '${model}' — cannot route to a provider`, requestId);
   }
 
   const authz = await authenticateAndAuthorize(req, { provider, model, requestId });

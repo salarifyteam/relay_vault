@@ -1,10 +1,13 @@
 import type { IEndUserKey } from "@/lib/models/EndUserKey";
 import type { ITenant } from "@/lib/models/Tenant";
+import type { ErrorCode } from "@/lib/errors/catalog";
 
 export interface CheckResult {
   allow: boolean;
   status?: number;
   reason?: string;
+  // 차단 시 안정 에러 코드. gate가 자기 에러를 직접 명명한다(proxyCommon이 추측하지 않도록).
+  code?: ErrorCode;
 }
 
 // 프록시 길목에서 복호화/포워드 직전 1회 호출되는 거버넌스 체크.
@@ -24,6 +27,7 @@ export function checkRequest(params: {
       allow: false,
       status: 429,
       reason: `Spend cap reached ($${endUserKey.spentUsd.toFixed(4)} / $${cap})`,
+      code: "spend_cap_exceeded",
     };
   }
 
