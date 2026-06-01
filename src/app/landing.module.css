@@ -1,0 +1,395 @@
+/* Landing page — Stripe-style structure, Relay tokens (globals.css). */
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.container {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── top nav ───────────────────────────────────────────── */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.brandMark {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent), #8b85ff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 14px;
+}
+.navLink {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.navLink:hover {
+  color: var(--ink);
+}
+
+/* shared buttons */
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.btnPrimary:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.btnGhost:hover {
+  color: var(--ink);
+}
+
+/* ── hero ──────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+/* Stripe-style angled gradient behind the hero */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% -10% auto -10%;
+  height: 520px;
+  background: linear-gradient(120deg, #f1f0ff 0%, #e9ecff 30%, #f6f9fc 70%);
+  transform: skewY(-7deg);
+  transform-origin: top left;
+  z-index: 0;
+}
+.heroInner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 56px;
+  align-items: center;
+  padding: 72px 0 80px;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.heroTitle {
+  font-size: 46px;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+.heroSub {
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 30em;
+}
+.heroCtas {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.textLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── shared section ────────────────────────────────────── */
+.section {
+  padding: 72px 0;
+}
+.sectionAlt {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.sectionHead {
+  max-width: 36em;
+  margin-bottom: 40px;
+}
+.sectionTitle {
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.sectionDesc {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* ── how it works (3 steps) ────────────────────────────── */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+.stepNum {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.stepTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.stepDesc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ── feature grid ──────────────────────────────────────── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.feature {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+.featureIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.featureTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.featureDesc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ── code section ──────────────────────────────────────── */
+.codeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.codeCard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid #14233b;
+  box-shadow: var(--shadow-pop);
+}
+.codeLabel {
+  background: #0d1b2f;
+  color: #8aa0bd;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 10px 16px;
+  border-bottom: 1px solid #14233b;
+}
+.code {
+  margin: 0;
+  background: #0a1626;
+  color: #d6e2f1;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 18px 16px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── stat strip (facts, no fake numbers) ───────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 44px;
+}
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 16px;
+  text-align: center;
+}
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.statLabel {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* screenshots */
+.shots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.shot {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-pop);
+  display: block;
+}
+
+/* ── final CTA ─────────────────────────────────────────── */
+.cta {
+  text-align: center;
+  padding: 84px 0;
+}
+.ctaTitle {
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.ctaSub {
+  margin-top: 12px;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+.ctaBtn {
+  margin-top: 26px;
+  display: inline-flex;
+}
+
+/* ── footer ────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.footerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.footerLinks {
+  display: flex;
+  gap: 20px;
+}
+
+/* ── hero mockup (inline SVG card) ─────────────────────── */
+.mockWrap {
+  display: flex;
+  justify-content: center;
+}
+.mock {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+}
+
+/* ── responsive ────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding: 48px 0 56px;
+  }
+  .heroTitle {
+    font-size: 36px;
+  }
+  .steps,
+  .features,
+  .codeGrid,
+  .shots {
+    grid-template-columns: 1fr;
+  }
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .navLinks {
+    gap: 14px;
+  }
+  .navLink {
+    display: none;
+  }
+}
