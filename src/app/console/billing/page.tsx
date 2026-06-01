@@ -38,12 +38,6 @@ export default async function BillingPage() {
           title="Bootstrap plan — free"
           desc="You're on the Bootstrap plan: free until you outgrow it. Automated billing for paid plans is on the roadmap, so nothing is charged today regardless of usage. If you'd like a paid plan or a custom arrangement, just reach out."
         >
-          <p style={{ fontSize: 13, color: "var(--ink-3)", margin: 0 }}>
-            Contact:{" "}
-            <a href="mailto:jioon.park@salarify.kr" style={{ color: "var(--accent)" }}>
-              jioon.park@salarify.kr
-            </a>
-          </p>
         </Card>
 
         <StatCardGrid>

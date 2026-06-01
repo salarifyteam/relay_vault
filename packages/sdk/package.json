@@ -4,12 +4,7 @@
   "description": "Official SDK for Relay — BYOK AI infrastructure. Let your users bring their own OpenAI/Anthropic/Google keys; you never see them.",
   "keywords": ["relay", "byok", "ai", "openai", "anthropic", "gemini", "proxy", "sdk"],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/salarifyteam/relay_stripe",
-    "directory": "packages/sdk"
-  },
-  "homepage": "https://vault.relayservice.im",
+"homepage": "https://vault.relayservice.im",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
