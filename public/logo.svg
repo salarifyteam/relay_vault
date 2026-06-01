@@ -1,0 +1,10 @@
+<svg width="148" height="40" viewBox="0 0 148 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0,4)">
+    <path d="M16 0 L32 16 L16 32 L0 16 Z" fill="#635bff" fill-opacity="0.14"/>
+    <path d="M16 0 L32 16 L16 17 Z" fill="#635bff"/>
+    <path d="M16 0 L0 16 L16 17 Z" fill="#7b74ff"/>
+    <path d="M0 16 L16 17 L16 32 Z" fill="#8a83ff"/>
+    <path d="M32 16 L16 17 L16 32 Z" fill="#635bff"/>
+  </g>
+  <text x="46" y="28" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="24" font-weight="700" fill="#0a2540">Relay</text>
+</svg>

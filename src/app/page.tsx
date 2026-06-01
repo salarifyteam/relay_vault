@@ -3,11 +3,9 @@ import s from "./landing.module.css";
 import HeroRotator from "./HeroRotator";
 import ValueSections from "./ValueSections";
 
-export const metadata = {
-  title: "Relay — Build BYOK in an afternoon",
-  description:
-    "Let your users bring their own AI keys (OpenAI, Anthropic, Gemini). Relay stores them encrypted and proxies every call, so you never touch a raw key.",
-};
+// Landing is the site's primary page — it inherits the root layout's
+// title/description/OG metadata as-is (the default title, not the "%s · Relay"
+// template), so no per-page override is needed here.
 
 const WIDGET_SNIPPET = `<div id="relay-widget"></div>
 <script src="https://vault.relayservice.im/widget.js"></script>

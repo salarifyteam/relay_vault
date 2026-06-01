@@ -1,4 +1,5 @@
 import "./globals.css";
+import type { Metadata } from "next";
 import { Schibsted_Grotesk, JetBrains_Mono } from "next/font/google";
 
 const sans = Schibsted_Grotesk({
@@ -13,9 +14,41 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata = {
-  title: "Relay for developers",
-  description: "BYOK infrastructure for AI apps",
+const SITE_URL = "https://vault.relayservice.im";
+const TITLE = "Relay — Build BYOK in an afternoon";
+const DESCRIPTION =
+  "Let your users bring their own AI keys (OpenAI, Anthropic, Gemini). Relay stores them encrypted and proxies every call, so you never touch a raw key.";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITLE,
+    template: "%s · Relay",
+  },
+  description: DESCRIPTION,
+  applicationName: "Relay",
+  keywords: ["BYOK", "AI keys", "OpenAI", "Anthropic", "Gemini", "API proxy", "LLM"],
+  openGraph: {
+    type: "website",
+    siteName: "Relay",
+    url: SITE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Relay — Build BYOK in an afternoon",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({

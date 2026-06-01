@@ -1,0 +1,33 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect width="1200" height="630" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6f9fc"/>
+      <stop offset="1" stop-color="#f1f0ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- brand mark + wordmark -->
+  <g transform="translate(96,92)">
+    <g transform="translate(0,2)">
+      <path d="M18 0 L36 18 L18 36 L0 18 Z" fill="#635bff" fill-opacity="0.14"/>
+      <path d="M18 0 L36 18 L18 19 Z" fill="#635bff"/>
+      <path d="M18 0 L0 18 L18 19 Z" fill="#7b74ff"/>
+      <path d="M0 18 L18 19 L18 36 Z" fill="#8a83ff"/>
+      <path d="M36 18 L18 19 L18 36 Z" fill="#635bff"/>
+    </g>
+    <text x="52" y="30" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="30" font-weight="700" fill="#0a2540">Relay</text>
+  </g>
+
+  <!-- headline -->
+  <text x="96" y="300" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="76" font-weight="700" fill="#0a2540" letter-spacing="-2">Build BYOK in</text>
+  <text x="96" y="384" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="76" font-weight="700" fill="#635bff" letter-spacing="-2">an afternoon.</text>
+
+  <!-- subhead -->
+  <text x="98" y="452" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="29" font-weight="400" fill="#425466">Let your users bring their own AI keys. Relay stores them</text>
+  <text x="98" y="492" font-family="'Schibsted Grotesk', system-ui, sans-serif" font-size="29" font-weight="400" fill="#425466">encrypted and proxies every call — you never touch a raw key.</text>
+
+  <!-- url chip -->
+  <text x="96" y="572" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="500" fill="#697386">vault.relayservice.im</text>
+</svg>

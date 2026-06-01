@@ -98,7 +98,7 @@ export function Shell({
           <span className={s.topTitle}>{title}</span>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {tenant && tenants && <TenantPicker current={tenant} tenants={tenants} />}
-            <span className={s.testBadge}>● Test mode</span>
+            <span className={s.planBadge}>● Bootstrap mode</span>
             <div className={s.accountWrap}>
               <button className={s.account} onClick={() => setMenuOpen((o) => !o)}>
                 {account.picture ? (

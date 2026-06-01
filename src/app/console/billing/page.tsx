@@ -28,15 +28,15 @@ export default async function BillingPage() {
       <div className={shellStyles.pageHead}>
         <h1 className={shellStyles.pageTitle}>Billing</h1>
         <p className={shellStyles.pageSub}>
-          Your usage and estimated charge. Automated payments aren&apos;t live yet — see the note below.
+          Your usage and estimated charge. The Bootstrap plan is free — see the note below.
         </p>
       </div>
 
       <div className={shellStyles.stack}>
-        {/* 정직 안내 — Free 베타, 결제 자동화 없음 */}
+        {/* 정직 안내 — Bootstrap 무료 플랜, 결제 자동화 아직 없음 */}
         <Card
-          title="Free beta — no charge"
-          desc="Relay is in free beta. There's no charge during this period regardless of your plan or usage. Automated billing is on the roadmap. If you'd like a paid plan or a custom arrangement, just reach out."
+          title="Bootstrap plan — free"
+          desc="You're on the Bootstrap plan: free until you outgrow it. Automated billing for paid plans is on the roadmap, so nothing is charged today regardless of usage. If you'd like a paid plan or a custom arrangement, just reach out."
         >
           <p style={{ fontSize: 13, color: "var(--ink-3)", margin: 0 }}>
             Contact:{" "}
@@ -59,12 +59,18 @@ export default async function BillingPage() {
           <StatCard
             label="Plan"
             value={plan.label}
-            sub={bill.custom ? "custom contract" : `${plan.includedKeys.toLocaleString()} keys included`}
+            sub={
+              bill.custom
+                ? "custom contract"
+                : plan.id === "free"
+                  ? `Free until you outgrow it · ${plan.includedKeys.toLocaleString()} keys included`
+                  : `${plan.includedKeys.toLocaleString()} keys included`
+            }
           />
           <StatCard
             label="Estimated charge"
             value={bill.custom ? "Custom" : usd(bill.totalUsd)}
-            sub="not billed during beta"
+            sub="not billed yet"
           />
         </StatCardGrid>
 
