@@ -2,6 +2,7 @@ import Link from "next/link";
 import s from "./landing.module.css";
 import HeroRotator from "./HeroRotator";
 import ValueSections from "./ValueSections";
+import { Wordmark } from "@/components/Wordmark";
 
 // Landing is the site's primary page — it inherits the root layout's
 // title/description/OG metadata as-is (the default title, not the "%s · Relay"
@@ -31,10 +32,8 @@ export default function Landing() {
       {/* nav */}
       <header className={s.container}>
         <nav className={s.nav}>
-          <div className={s.brand}>
-            <span className={s.brandMark}>◆</span>
-            Relay
-          </div>
+          <Wordmark height={22} />
+
           <div className={s.navLinks}>
             <Link href="/docs" className={s.navLink}>Docs</Link>
             <Link href="/login" className={s.navLink}>Sign in</Link>
@@ -158,10 +157,8 @@ export default function Landing() {
       <footer className={s.footer}>
         <div className={s.container}>
           <div className={s.footerInner}>
-            <div className={s.brand}>
-              <span className={s.brandMark}>◆</span>
-              Relay
-            </div>
+            <Wordmark height={20} />
+
             <div className={s.footerLinks}>
               <Link href="/docs" className={s.navLink}>Docs</Link>
               <Link href="/login" className={s.navLink}>Sign in</Link>

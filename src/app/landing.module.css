@@ -20,26 +20,6 @@
   justify-content: space-between;
   height: 64px;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.brandMark {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent), #8b85ff);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 14px;
-  box-shadow: var(--shadow-sm);
-}
 .navLinks {
   display: flex;
   align-items: center;

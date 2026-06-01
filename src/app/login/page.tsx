@@ -1,4 +1,5 @@
 import s from "./login.module.css";
+import { Wordmark } from "@/components/Wordmark";
 
 export default async function LoginPage({
   searchParams,
@@ -17,8 +18,7 @@ export default async function LoginPage({
       <div className={s.left}>
         <div className={s.inner}>
           <div className={s.brand}>
-            <span className={s.brandMark}>◆</span>
-            Relay
+            <Wordmark height={20} />
           </div>
           <h1 className={s.title}>Build BYOK in an afternoon.</h1>
           <p className={s.sub}>

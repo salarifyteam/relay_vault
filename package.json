@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "deploy": "bash scripts/deploy.sh",
     "lint": "next lint",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "set-plan": "tsx --env-file=.env.local scripts/setPlan.ts",

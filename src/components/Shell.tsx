@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import s from "./Shell.module.css";
 import { TenantPicker, type TenantPickerItem } from "./TenantPicker";
+import { Wordmark } from "./Wordmark";
 
 const NAV = [
   { href: "/console", label: "Home", icon: House },
@@ -63,8 +64,7 @@ export function Shell({
     <div className={s.shell}>
       <aside className={s.sidebar}>
         <div className={s.brand}>
-          <span className={s.brandMark}>◆</span>
-          Relay
+          <Wordmark height={20} />
         </div>
         <nav className={s.nav}>
           {NAV.map((item) => {

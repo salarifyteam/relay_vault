@@ -24,18 +24,6 @@
   font-weight: 600;
   color: var(--ink);
 }
-.brandMark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent), #8b85ff);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 13px;
-  box-shadow: var(--shadow-sm);
-}
 .nav {
   display: flex;
   flex-direction: column;
